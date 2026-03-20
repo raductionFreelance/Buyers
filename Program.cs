@@ -37,7 +37,7 @@ namespace ConsoleApp1
     {
         private const string ConnectionString = @"Server=RaductionPc\Test;Database=Clients&Sales;Trusted_Connection=True;TrustServerCertificate=True";
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             while (true)
             {
@@ -63,7 +63,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql1 = @"SELECT City, COUNT(*) AS BuyerCount FROM Buyers GROUP BY City";
-                            var results = db.Query(sql1).ToList();
+                            var results = (await db.QueryAsync(sql1)).ToList();
                             Console.WriteLine("Кількість покупців у містах:");
                             foreach (var item in results)
                             {
@@ -76,7 +76,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql2 = @"SELECT Country, COUNT(*) AS BuyerCount FROM Buyers GROUP BY Country";
-                            var results = db.Query(sql2).ToList();
+                            var results = (await db.QueryAsync(sql2)).ToList();
                             Console.WriteLine("Кількість покупців у країнах:");
                             foreach (var item in results)
                             {
@@ -89,7 +89,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql3 = @"SELECT Country, COUNT(DISTINCT City) AS CityCount FROM Buyers GROUP BY Country";
-                            var results = db.Query(sql3).ToList();
+                            var results = (await db.QueryAsync(sql3)).ToList();
                             Console.WriteLine("Кількість міст у країнах:");
                             foreach (var item in results)
                             {
@@ -102,7 +102,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql4 = @"SELECT AVG(CAST(CityCount AS FLOAT)) FROM (SELECT COUNT(DISTINCT City) AS CityCount FROM Buyers GROUP BY Country) AS Sub";
-                            double averageCities = db.ExecuteScalar<double>(sql4);
+                            double averageCities = await db.ExecuteScalarAsync<double>(sql4);
                             Console.WriteLine($"AVG: {averageCities:F2}");
                         }
                         break;
@@ -111,7 +111,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql5 = @"SELECT Interests FROM Buyers WHERE Country = 'Ukraine'";
-                            var results = db.Query<string>(sql5);
+                            var results = await db.QueryAsync<string>(sql5);
                             var interests = results
                                 .Where(js => !string.IsNullOrEmpty(js))
                                 .SelectMany(js => JsonSerializer.Deserialize<List<string>>(js) ?? new List<string>())
@@ -130,7 +130,7 @@ namespace ConsoleApp1
                         using (IDbConnection db = new SqlConnection(ConnectionString))
                         {
                             string sql6 = @"SELECT * FROM Products WHERE Name = 'PC' AND Start > '2020-04-12' AND [End] < '2025-12-18'";
-                            var products = db.Query<Product>(sql6).ToList();
+                            var products = (await db.QueryAsync<Product>(sql6)).ToList();
                             
                             Console.WriteLine("Товари:");
                             foreach (var product in products)
@@ -146,7 +146,7 @@ namespace ConsoleApp1
                                         JOIN Buyers b ON b.Id = bp.BuyersId
                                         WHERE b.Name = 'Tom'";
                         
-                        var saleProducts =  db.Query<Product>(sql7).ToList();
+                        var saleProducts =  (await db.QueryAsync<Product>(sql7)).ToList();
                         Console.WriteLine("Товари:");
                         foreach (var product in saleProducts)
                         {
@@ -160,7 +160,7 @@ namespace ConsoleApp1
                             string sql8 = @"SELECT TOP 3 Country, COUNT(*) AS BuyerCount 
                                             FROM Buyers GROUP BY Country 
                                             ORDER BY BuyerCount DESC";
-                            var results = db.Query(sql8).ToList();
+                            var results = (await db.QueryAsync(sql8)).ToList();
                             Console.WriteLine("Топ-3 країни за кількістю покупців:");
                             foreach (var item in results)
                             {
@@ -175,7 +175,7 @@ namespace ConsoleApp1
                             string sql9 = @"SELECT TOP 1 Country, COUNT(*) AS BuyerCount 
                                             FROM Buyers GROUP BY Country 
                                             ORDER BY BuyerCount DESC";
-                            var result = db.QueryFirstOrDefault(sql9);
+                            var result = await db.QueryFirstOrDefaultAsync(sql9);
                             if (result != null)
                                 Console.WriteLine($"Найкраща країна: {result.Country} ({result.BuyerCount} покупців)");
                         }
@@ -187,7 +187,7 @@ namespace ConsoleApp1
                             string sql10 = @"SELECT TOP 3 City, COUNT(*) AS BuyerCount 
                                              FROM Buyers GROUP BY City 
                                              ORDER BY BuyerCount DESC";
-                            var results = db.Query(sql10).ToList();
+                            var results = (await db.QueryAsync(sql10)).ToList();
                             Console.WriteLine("Топ-3 міста за кількістю покупців:");
                             foreach (var item in results)
                             {
@@ -202,7 +202,7 @@ namespace ConsoleApp1
                             string sql11 = @"SELECT TOP 1 City, COUNT(*) AS BuyerCount 
                                              FROM Buyers GROUP BY City 
                                              ORDER BY BuyerCount DESC";
-                            var result = db.QueryFirstOrDefault(sql11);
+                            var result = await db.QueryFirstOrDefaultAsync(sql11);
                             if (result != null)
                                 Console.WriteLine($"Найкраще місто: {result.City} ({result.BuyerCount} покупців)");
                         }
